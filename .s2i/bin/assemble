@@ -9,7 +9,9 @@
 
 source /usr/libexec/s2i/s3_access
 
-sleep 1000
+#sleep 1000
+echo "hello testing"
+sleep 60
 
 if [[ "$1" == "-h" ]]; then
 	# If the 'nginx-centos7' assemble script is executed with '-h' flag,
