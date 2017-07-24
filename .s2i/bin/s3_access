@@ -1,0 +1,4 @@
+#!/bin/bash -e
+
+# gluster-s3 access exposed using:
+ip_address=10.130.0.53

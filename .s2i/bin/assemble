@@ -1,0 +1,57 @@
+#!/bin/bash -e
+#
+# S2I assemble script for the 'nginx-centos7' image.
+# The 'assemble' script builds your application source so that it is ready to run.
+#
+# For more information refer to the documentation:
+#	https://github.com/openshift/source-to-image/blob/master/docs/builder_image.md
+#
+
+source /usr/libexec/s2i/s3_access
+
+sleep 1000
+
+if [[ "$1" == "-h" ]]; then
+	# If the 'nginx-centos7' assemble script is executed with '-h' flag,
+	# print the usage.
+	exec /usr/libexec/s2i/usage
+fi
+
+# Restore artifacts from the previous build (if they exist).
+# We set them here just for show, but you will need to set this up with your logic
+# according to the application directory that you chose.
+
+#uncommented by saran 26 may 2017
+# if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
+  #   echo "---> Restoring build artifacts..."
+  #  mv /tmp/artifacts/*  /usr/share/nginx/html/
+# fi
+
+
+# Override the default nginx index.html file.
+# This is what we consider in this example 'installing the application'
+# here you can go ahead an replace this with the actual building of python modules,
+# bundle install, and anything else you need.
+
+echo "---> Building and installing application from source..."
+cp  /tmp/src/* /usr/share/nginx/html/
+
+
+# To save the built artifacts into s3 store - Here artifact.blob is built artifact
+cp /tmp/src/*  /usr/share/nginx/html/artifact.blob
+# Create bucket first
+/usr/libexec/s2i/s3curl.pl --id "testvolume:admin" --key "redhat"  --put /dev/null  -- -k -v  http://$ip_address:8080/artifacts_1
+# Add object into the bucket
+/usr/libexec/s2i/s3curl.pl --id "testvolume:admin" --key "redhat"  --put /tmp/src/*  -- -k -v  http://$ip_address:8080/artifacts_1/artifact.blob
+
+
+# To restore artifacts from s3 storage
+result=$(/usr/libexec/s2i/s3curl.pl --id "testvolume:admin" --key "redhat"  -- -k -v -s http://$ip_address:8080/artifacts_2/   | grep Key -w)
+# ok, artifacts present
+if [[ -n "$result" ]]; then
+    #TODO get all the objects from artifacts bucket and restore
+     /usr/libexec/s2i/s3curl.pl --id "testvolume:admin" --key "redhat"  -- -o /tmp/artifact_2.blob http://$ip_address:8080/artifacts_2/artifact_2.blob
+    mv /tmp/artifact_2.blob /usr/share/nginx/html/old_artifact_from_s3.html
+else
+    echo "no artifact found"
+fi
