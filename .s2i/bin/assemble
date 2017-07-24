@@ -36,11 +36,11 @@ fi
 # bundle install, and anything else you need.
 
 echo "---> Building and installing application from source..."
-cp  /tmp/src/* /usr/share/nginx/html/
+cp -v /tmp/src/* /usr/share/nginx/html/
 
 
 # To save the built artifacts into s3 store - Here artifact.blob is built artifact
-cp /tmp/src/*  /usr/share/nginx/html/artifact.blob
+cp -v /tmp/src/*  /usr/share/nginx/html/artifact.blob
 # Create bucket first
 /usr/libexec/s2i/s3curl.pl --id "testvolume:admin" --key "redhat"  --put /dev/null  -- -k -v  http://$ip_address:8080/artifacts_1
 # Add object into the bucket
